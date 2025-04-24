@@ -6,6 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()  # ✅ add this back
     serializer_class = TaskSerializer
 
     def get_queryset(self):
