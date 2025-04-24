@@ -5,7 +5,9 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit }) {
   return (
     <List.Item
       title={task.title}
-      titleStyle={{ textDecorationLine: task.completed ? 'line-through' : 'none' }}
+      titleStyle={{
+        textDecorationLine: task.completed ? 'line-through' : 'none',
+      }}
       left={() => (
         <IconButton
           icon={task.completed ? 'check-circle' : 'circle-outline'}

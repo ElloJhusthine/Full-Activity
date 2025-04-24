@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, TextInput, TouchableOpacity, Text } from 'react-native';
-import { Provider as PaperProvider } from 'react-native-paper';
-import TaskItem from './components/TaskItem';  // Adjust the path if necessary
+import { Provider as PaperProvider, Button, DefaultTheme, DarkTheme } from 'react-native-paper';
+import TaskItem from './components/TaskItem';
 import api from './utils/api';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState('');
   const [editingTask, setEditingTask] = useState(null);
+  const [filter, setFilter] = useState('All'); // All, Completed, Pending
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     fetchTasks();
@@ -65,31 +67,54 @@ export default function App() {
     setEditingTask(task);
   };
 
+  const filteredTasks = tasks.filter(task => {
+    if (filter === 'Completed') return task.completed;
+    if (filter === 'Pending') return !task.completed;
+    return true;
+  });
+
   return (
-    <PaperProvider>
-      <View style={styles.container}>
+    <PaperProvider theme={isDarkMode ? DarkTheme : DefaultTheme}>
+      <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#E6E6FA' }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: isDarkMode ? '#fff' : '#800080', borderColor: '#800080' }]}
           placeholder="Enter task"
-          placeholderTextColor="#800080"
+          placeholderTextColor={isDarkMode ? '#aaa' : '#800080'}
           value={title}
           onChangeText={setTitle}
         />
         <TouchableOpacity style={styles.button} onPress={addTask}>
+          <Text style={styles.buttonText}>{editingTask ? 'Update Task' : 'Add Task'}</Text>
+        </TouchableOpacity>
+
+        {/* Filter Buttons */}
+        <View style={styles.filterContainer}>
+          {['All', 'Completed', 'Pending'].map(option => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => setFilter(option)}
+              style={[
+                styles.filterButton,
+                filter === option && styles.activeFilter,
+              ]}
+            >
+              <Text style={styles.filterText}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Dark Mode Toggle */}
+        <TouchableOpacity style={styles.toggleButton} onPress={() => setIsDarkMode(!isDarkMode)}>
           <Text style={styles.buttonText}>
-            {editingTask ? 'Update Task' : 'Add Task'}
+            {isDarkMode ? '☀ Light Mode' : '🌙 Dark Mode'}
           </Text>
         </TouchableOpacity>
+
         <FlatList
-          data={tasks}
+          data={filteredTasks}
           keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
-            <TaskItem
-              task={item}
-              onToggle={toggleTask}
-              onDelete={deleteTask}
-              onEdit={editTask}
-            />
+            <TaskItem task={item} onToggle={toggleTask} onDelete={deleteTask} onEdit={editTask} />
           )}
         />
       </View>
@@ -102,26 +127,47 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: 60,
-    backgroundColor: '#E6E6FA', // light violet
   },
   input: {
     borderWidth: 1,
-    borderColor: '#800080',
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
-    color: '#800080',
   },
   button: {
-    backgroundColor: '#800080', // purple
+    backgroundColor: '#800080',
     padding: 12,
     borderRadius: 5,
-    marginBottom: 20,
+    marginBottom: 10,
     alignItems: 'center',
   },
   buttonText: {
     color: '#E6E6FA',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 10,
+  },
+  filterButton: {
+    backgroundColor: '#D8BFD8',
+    padding: 8,
+    borderRadius: 5,
+  },
+  activeFilter: {
+    backgroundColor: '#BA55D3',
+  },
+  filterText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  toggleButton: {
+    backgroundColor: '#9370DB',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
   },
 });
